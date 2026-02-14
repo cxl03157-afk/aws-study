@@ -6,6 +6,15 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
 
+  DBUser:
+    Type: String
+    NoEcho: true
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+
+
 Resources:
 # -----------------------------
 # VPC
@@ -152,15 +161,15 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 0.0.0.0/0
+          CidrIp: 106.73.130.193/32
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8080
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
       Tags:
         - Key: Name
           Value: aws-study2-ec2-sg
@@ -261,15 +270,15 @@ Resources:
     Properties:
       DBInstanceClass: db.t3.micro
       Engine: mysql
-      MasterUsername: root
-      MasterUserPassword: rootroot
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
       AllocatedStorage: 20
       StorageType: gp3
       PubliclyAccessible: false
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
-      Tags:
+      Tags: 
         - Key: Name
           Value: aws-study2-db
 
