@@ -271,7 +271,8 @@ Resources:
       DBInstanceClass: db.t3.micro
       Engine: mysql
       MasterUsername: !Ref DBUser
-      MasterUserPassword: !Ref DBPassword
+      MasterUserPassword: !Ref DBPassword 
+      DBName: awsstudy
       AllocatedStorage: 20
       StorageType: gp3
       PubliclyAccessible: false
@@ -287,7 +288,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: aws-study-cpu-utilization-alarm
-      AlarmDescription: "Aws-Study3 EC2のCPU使用率が1%以上になりました。"
+      AlarmDescription: "Aws-Study3 EC2のCPU使用率が10%以上になりました。"
       Namespace: "AWS/EC2"
       Dimensions:
         - Name: "InstanceId"
@@ -296,7 +297,7 @@ Resources:
       Unit: "Percent"
       Period: 300
       Statistic: "Average"
-      Threshold: 20
+      Threshold: 10
       ComparisonOperator: "GreaterThanOrEqualToThreshold"
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
@@ -305,15 +306,8 @@ Resources:
       AlarmActions:
         - arn:aws:sns:ap-northeast-1:865091756032:practic-ec2-alarm-highcpu
 
-  # --- Log Groupeの設定 ---
-  WAFLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /aws/waf/aws-study3-waf-logs
-      RetentionInDays: 30
 
   # --- WAFの設定 ---
-  # --- 1. WebACL ---
   MyWebACL:
     Type: AWS::WAFv2::WebACL
     Properties:
@@ -338,16 +332,29 @@ Resources:
             SampledRequestsEnabled: true
             CloudWatchMetricsEnabled: true
             MetricName: AWSManagedCommonRuleSet
+  
+  # --- Log Groupeの設定 ---
+  WAFLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: aws-waf-logs-awsstudy3
+      RetentionInDays: 30
 
-      LoggingConfiguration:
-        LogDestinationConfigs:
-          - !GetAtt WAFLogGroup.Arn
 
-  # 2. ALB に WAF をつける
+  # --- Logの設定 ---
+  WAFLogging:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt MyWebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt WAFLogGroup.Arn
+
+
+  # ALB と WAF の関連付け
   WAFAssociation:
     Type: AWS::WAFv2::WebACLAssociation
     Properties:
-      ResourceArn: !Ref ALB   # ALB の ARN を渡す
+      ResourceArn: !GetAtt ALB.LoadBalancerArn   # ALB の ARN を渡す
       WebACLArn: !GetAtt MyWebACL.Arn
 
 
