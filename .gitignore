@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# tfvars (秘密情報が入ることがある)
+*.tfvars
+*.tfvars.json
+
+# 秘密鍵
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
