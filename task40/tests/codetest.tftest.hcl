@@ -1,20 +1,7 @@
 
 # テスト内容
 run "aws_code_test" {
-  command = plan
-
-#  定義
-#variables {
-#  vpc_cidr = "10.0.0.0/16"
-#  public_subnet1_cidr = "10.0.1.0/24"
-#}
-
-#  変数定義
-
-  variables {
-    db_username = "root"
-    db_password = "rootroot"
-  }
+ command = plan
 
 # VPC Cidr確認
   assert {
@@ -60,9 +47,8 @@ assert {
 
 # RDSのInstance typeの確認
 assert {
-  condition = aws_db_instance.mysql.instance_class == "db.t3.micro"
+  condition = output.rds_type == "db.t3.micro"
   error_message = "RDS instance type mismatch"
-
 }
 
 }
