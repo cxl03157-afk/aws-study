@@ -57,4 +57,4 @@ jobs:
         run: terraform plan -no-color
 
       - name: Apply
-        run: terraform apply -atuo-approve
+        run: terraform apply -auto-approve -input=false
