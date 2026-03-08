@@ -2,7 +2,7 @@
 terraform {
   backend "s3" {
     bucket         = "tf-aws-study"
-    key            = "terraform.tfstate"
+    key            = "${var.study_name}/${terraform.workspace}/terraform.tfstate"
     region         = "ap-northeast-1"
     dynamodb_table = "terraform-lock"
   }

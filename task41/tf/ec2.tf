@@ -14,7 +14,7 @@ resource "aws_instance" "ec2" {
   })
 }
 
-resource "aws_instance" "ec2-2" {
+resource "aws_instance" "ec2_2" {
   ami                    = data.aws_ssm_parameter.al2023.value
   instance_type          = "t3.micro"
   subnet_id              = values(aws_subnet.public_sub)[1].id

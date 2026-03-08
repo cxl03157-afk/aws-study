@@ -7,6 +7,15 @@ on:
       - 'task41/tf/tests/**/*.tftest.hcl'
       - '.github/workflows/*.yaml'
 
+  push:
+    branches:
+      - main
+    paths:
+      - 'task41/tf/**/*.tf'
+      - 'task41/tf/tests/**/*.tftest.hcl'
+      - '.github/workflows/*.yaml'
+
+
 permissions:
   contents: read
   id-token: write
@@ -43,6 +52,9 @@ jobs:
       - name: Init
         run: terraform init
 
+      - name: Select Workspace
+        run: terraform workspace select -or-create dev
+
       - name: Fmt Check
         run: terraform fmt -check
 
@@ -54,7 +66,36 @@ jobs:
         run: terraform test
 
       - name: Plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -input=false
+
+
+  apply:
+    name: Terraform Apply
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init
+
+      - name: Select Workspace
+        run: terraform workspace select -or-create prod
 
       - name: Apply
         run: terraform apply -auto-approve -input=false
