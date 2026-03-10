@@ -1,0 +1,39 @@
+name: Ansible Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/key.pem
+          chmod 600 ~/.ssh/key.pem
+
+      - name: Disable host key checking
+        run: |
+          printf "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Run Ansible ping
+        working-directory: task41/ansible
+        run: ansible -i inventory app -m ping
+
+      - name: Run Ansible playbook
+        working-directory: task41/ansible
+        run: ansible-playbook -i inventory playbook.yml
+
+
+  
