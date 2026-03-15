@@ -1,0 +1,84 @@
+- hosts: app
+
+  tasks:
+    - name: swapfile exists?
+      become: true
+      stat:
+        path: /swapfile
+      register: swapfile_stat
+
+    - name: create swap file
+      become: true
+      command: fallocate -l 2G /swapfile
+      when: not swapfile_stat.stat.exists
+
+    - name: set swapfile permission
+      become: true
+      file:
+        path: /swapfile
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: format swap
+      become: true
+      command: mkswap /swapfile
+      when: not swapfile_stat.stat.exists
+
+    - name: check active swaps
+      become: true
+      command: swapon --show
+      register: swap_status
+      changed_when: false
+
+    - name: enable swap
+      become: true
+      command: swapon /swapfile
+      when: "'/swapfile' not in swap_status.stdout"
+
+    - name: persist swap
+      become: true
+      lineinfile:
+        path: /etc/fstab
+        line: "/swapfile swap swap defaults 0 0"
+        state: present
+
+    - name: install java-21
+      become: true
+      dnf:
+        name:  java-21-amazon-corretto-devel.x86_64
+        state: present
+
+    - name: install git
+      become: true
+      dnf:
+        name:  git
+        state: present
+
+    - name: clone repository
+      git:
+        repo: https://github.com/koujienami/aws-study.git
+        dest: /home/ec2-user/aws-study
+        force: yes
+
+    - name: change mode
+      file:
+        path: /home/ec2-user/aws-study/gradlew
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: build app
+      command: ./gradlew build
+      args:
+        chdir: /home/ec2-user/aws-study
+
+    - name: stop existing bootRun
+      shell: pkill -f 'gradlew bootRun'
+      ignore_errors: true
+
+    - name: start bootRun
+      shell: nohup ./gradlew bootRun > bootrun.log 2>&1 </dev/null &
+      args:
+        chdir: /home/ec2-user/aws-study
+
