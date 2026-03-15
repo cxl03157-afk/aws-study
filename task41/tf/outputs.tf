@@ -47,3 +47,7 @@ output "ec2_type" {
 output "rds_type" {
   value = aws_db_instance.mysql.instance_class
 }
+
+output "ec2_instance_id" {
+  value = aws_instance.ec2.id
+}
