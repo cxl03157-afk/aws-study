@@ -1,19 +1,17 @@
 - hosts: app
+  become: true
 
   tasks:
     - name: swapfile exists?
-      become: true
       stat:
         path: /swapfile
       register: swapfile_stat
 
     - name: create swap file
-      become: true
       command: fallocate -l 2G /swapfile
       when: not swapfile_stat.stat.exists
 
     - name: set swapfile permission
-      become: true
       file:
         path: /swapfile
         owner: root
@@ -21,36 +19,30 @@
         mode: '0600'
 
     - name: format swap
-      become: true
       command: mkswap /swapfile
       when: not swapfile_stat.stat.exists
 
     - name: check active swaps
-      become: true
       command: swapon --show
       register: swap_status
       changed_when: false
 
     - name: enable swap
-      become: true
       command: swapon /swapfile
       when: "'/swapfile' not in swap_status.stdout"
 
     - name: persist swap
-      become: true
       lineinfile:
         path: /etc/fstab
         line: "/swapfile swap swap defaults 0 0"
         state: present
 
     - name: install java-21
-      become: true
       dnf:
         name:  java-21-amazon-corretto-devel.x86_64
         state: present
 
     - name: install git
-      become: true
       dnf:
         name:  git
         state: present
@@ -77,8 +69,7 @@
 
     - name: stop existing bootRun
       become_user: ec2-user
-      shell: pkill -f 'gradlew bootRun'
-      ignore_errors: true
+      shell: pkill -f 'java.*aws-study|gradlew bootRun' || true
 
     - name: start bootRun
       become_user: ec2-user
