@@ -6,6 +6,7 @@ on:
       - task43
     paths:
       - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
       - 'task43/ansible/**'
       - 'task41/tf/**'
 
