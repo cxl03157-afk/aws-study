@@ -56,6 +56,7 @@
         state: present
 
     - name: clone repository
+      become_user: ec2-user
       git:
         repo: https://github.com/koujienami/aws-study.git
         dest: /home/ec2-user/aws-study
@@ -69,15 +70,18 @@
         mode: '0755'
 
     - name: build app
+      become_user: ec2-user
       command: ./gradlew build
       args:
         chdir: /home/ec2-user/aws-study
 
     - name: stop existing bootRun
+      become_user: ec2-user
       shell: pkill -f 'gradlew bootRun'
       ignore_errors: true
 
     - name: start bootRun
+      become_user: ec2-user
       shell: nohup ./gradlew bootRun > bootrun.log 2>&1 </dev/null &
       args:
         chdir: /home/ec2-user/aws-study
