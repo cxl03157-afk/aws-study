@@ -69,7 +69,8 @@
 
     - name: stop existing bootRun
       become_user: ec2-user
-      shell: pkill -f 'java.*aws-study|gradlew bootRun' || true
+      shell: pkill -f 'java.*aws-study|gradlew bootRun'
+      failed_when: false
 
     - name: start bootRun
       become_user: ec2-user
