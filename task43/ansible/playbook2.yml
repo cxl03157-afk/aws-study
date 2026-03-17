@@ -67,14 +67,104 @@
       args:
         chdir: /home/ec2-user/aws-study
 
-    - name: stop existing bootRun
-      become_user: ec2-user
-      shell: pkill -f 'java.*aws-study|gradlew bootRun'
-      failed_when: false
+#    - name: stop existing bootRun
+#      become_user: ec2-user
+#      shell: pkill -f 'java.*aws-study|gradlew bootRun'
+#      failed_when: false
 
-    - name: start bootRun
-      become_user: ec2-user
-      shell: nohup ./gradlew bootRun > bootrun.log 2>&1 </dev/null &
-      args:
-        chdir: /home/ec2-user/aws-study
+#    - name: start bootRun
+#      become_user: ec2-user
+#      shell: nohup ./gradlew bootRun > bootrun.log 2>&1 </dev/null &
+#      args:
+#        chdir: /home/ec2-user/aws-study
+
+    - name: find jar file
+      find:
+        paths: /home/ec2-user/aws-study/build/libs
+        patterns: "*.jar"
+        excludes: "*plain.jar"
+        file_type: file
+      register: jar_files
+
+    - name: No jar file
+      fail:
+        msg: "Jar file was not found"
+      when: jar_files.matched == 0
+
+    - name: create app dir
+      file:
+        path: /opt/aws-study
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: copy jar file
+      copy:
+        src: "{{ jar_files.files[0].path }}"
+        dest: /opt/aws-study/app.jar
+        remote_src: true
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+
+    - name: create systemd service file
+      copy:
+        dest: /etc/systemd/system/aws-study.service
+        content: |
+          [Unit]
+          Description=Spring Boot AWS Study App
+          After=network.target
+
+          [Service]
+          User=ec2-user
+          WorkingDirectory=/opt/aws-study
+          ExecStart=/usr/bin/java -jar /opt/aws-study/app.jar
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=10
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: enable aws-study service
+      systemd:
+        name: aws-study
+        enabled: true
+
+    - name: restart aws-study service
+      systemd:
+        name: aws-study
+        state: restarted
+
+    - name: wait for app port
+      wait_for:
+        port: 8080
+        host: 127.0.0.1
+        delay: 3
+        timeout: 60 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
