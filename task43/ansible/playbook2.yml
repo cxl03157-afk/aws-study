@@ -1,6 +1,10 @@
 - hosts: app
   become: true
 
+  vars:
+    app_dir: /opt/aws-study
+    app_file: app.war
+
   tasks:
     - name: swapfile exists?
       stat:
@@ -63,7 +67,7 @@
 
     - name: build app
       become_user: ec2-user
-      command: ./gradlew build
+      command: ./gradlew bootWar
       args:
         chdir: /home/ec2-user/aws-study
 
@@ -78,57 +82,40 @@
 #      args:
 #        chdir: /home/ec2-user/aws-study
 
-    - name: find jar file
+    - name: find war file
       find:
         paths: /home/ec2-user/aws-study/build/libs
-        patterns: "*.jar"
-        excludes: "*plain.jar"
+        patterns: "*.war"
+        excludes: "*plain.war"
         file_type: file
-      register: jar_files
+      register: war_files
 
-    - name: No jar file
+    - name: No war file
       fail:
-        msg: "Jar file was not found"
-      when: jar_files.matched == 0
+        msg: "War file was not found"
+      when: war_files.matched == 0
 
     - name: create app dir
       file:
-        path: /opt/aws-study
+        path: "{{ app_dir }}"
         state: directory
         owner: ec2-user
         group: ec2-user
         mode: '0755'
 
-    - name: copy jar file
+    - name: copy war file
       copy:
-        src: "{{ jar_files.files[0].path }}"
-        dest: /opt/aws-study/app.jar
+        src: "{{ war_files.files[0].path }}"
+        dest: "{{ app_dir }}/{{ app_file }}"
         remote_src: true
         owner: ec2-user
         group: ec2-user
         mode: '0644'
 
     - name: create systemd service file
-      copy:
+      template:
+        src: aws-study.service.j2
         dest: /etc/systemd/system/aws-study.service
-        content: |
-          [Unit]
-          Description=Spring Boot AWS Study App
-          After=network.target
-
-          [Service]
-          User=ec2-user
-          WorkingDirectory=/opt/aws-study
-          ExecStart=/usr/bin/java -jar /opt/aws-study/app.jar
-          SuccessExitStatus=143
-          Restart=always
-          RestartSec=10
-
-          [Install]
-          WantedBy=multi-user.target
-        owner: root
-        group: root
-        mode: '0644'
 
     - name: reload systemd
       systemd:
@@ -150,21 +137,3 @@
         host: 127.0.0.1
         delay: 3
         timeout: 60 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

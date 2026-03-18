@@ -12,12 +12,12 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   # PCからのアクセス
-#  ingress {
-#    from_port   = 22
-#    to_port     = 22
-#    protocol    = "tcp"
-#    cidr_blocks = [var.ec2_ssh_cidr]
-#  }
+  #  ingress {
+  #    from_port   = 22
+  #    to_port     = 22
+  #    protocol    = "tcp"
+  #    cidr_blocks = [var.ec2_ssh_cidr]
+  #  }
 
   egress {
     from_port   = 0

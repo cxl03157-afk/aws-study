@@ -51,3 +51,7 @@ output "rds_type" {
 output "ec2_instance_id" {
   value = aws_instance.ec2.id
 }
+
+output "ssm_bucket_name" {
+  value = var.ssm_bucket_name
+}
