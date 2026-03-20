@@ -28,10 +28,6 @@ variable "ec2_key_name" {
   default = "aws-study-kye3"
 }
 
-variable "ec2_ssh_cidr" {
-  type    = string
-  default = "106.73.130.193/32"
-}
 
 variable "db_username" {
   type = string
@@ -40,4 +36,9 @@ variable "db_username" {
 variable "db_password" {
   type      = string
   sensitive = true
+}
+
+variable "ssm_bucket_name" {
+  type    = string
+  default = "ansible-ssm-aws-study"
 }
