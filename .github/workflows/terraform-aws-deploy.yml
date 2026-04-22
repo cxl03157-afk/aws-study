@@ -99,14 +99,15 @@ jobs:
         run: terraform init -input=false
 
       - name: Select Workspace
-        run: terraform workspace select dev || terraform workspace new dev
+        run: terraform workspace select -or-create dev
 
       - name: Terraform Apply dev
         run: terraform apply -auto-approve -input=false        
 
   apply:
+    if: false
     name: Terraform Apply prod
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     defaults:
