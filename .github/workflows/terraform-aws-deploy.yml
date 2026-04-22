@@ -11,13 +11,14 @@ on:
   push:
     branches:
       - main
-      - test2 #後で消す
+
     paths:
       - 'projects/terraform-aws-deploy/tf/**/*.tf'
       - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
       - '.github/workflows/*.yaml'
       - '.github/workflows/*.yml'
-
+    
+  workflow_dispatch:      
 
 permissions:
   contents: read
@@ -31,8 +32,8 @@ env:
 
 jobs:
   plan:
-    name: terraform CI/CD
-    if: github.event_name == 'pull_request' || github.event_name == 'push' #pushは後で消す
+    name: terraform plan
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     defaults:
@@ -41,29 +42,28 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Init
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Select Workspace
         run: terraform workspace select -or-create dev
 
       - name: Fmt Check
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
 
       - name: Validate
         run: terraform validate
-
 
       - name: test
         run: terraform test -verbose
@@ -72,8 +72,40 @@ jobs:
         run: terraform plan -no-color -input=false
 
 
+  apply_dev:
+    needs: plan
+    name: Terraform Apply dev
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        run: terraform workspace select dev || terraform workspace new dev
+
+      - name: Terraform Apply dev
+        run: terraform apply -auto-approve -input=false        
+
   apply:
-    name: Terraform Apply
+    name: Terraform Apply prod
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
@@ -83,19 +115,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Init
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Select Workspace
         run: terraform workspace select -or-create prod

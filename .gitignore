@@ -4,10 +4,12 @@
 *.tfstate.*
 crash.log
 crash.*.log
+*.tfplan
 
 # tfvars (秘密情報が入ることがある)
 *.tfvars
 *.tfvars.json
+terraform.tfvars
 
 # 秘密鍵
 *.pem
@@ -15,3 +17,12 @@ crash.*.log
 # OS
 .DS_Store
 Thumbs.db
+
+# override
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+#無視防止
+!.terraform.lock.hcl

@@ -1,0 +1,144 @@
+name: App test
+
+on:
+  push:
+    branches:
+      - test3
+    paths:
+      - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
+      - 'projects/ansible-app-deploy/ansible/**'
+      - 'projects/ansible-app-deploy/tf/**'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_DIR: projects/ansible-app-deploy/tf
+  ANSIBLE_DIR: projects/ansible-app-deploy/ansible
+  AWS_REGION: ap-northeast-1
+  TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+  TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+
+jobs:
+  terraform_apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    outputs:
+      ec2_instance_id: ${{ steps.get_instance_id.outputs.ec2_instance_id }}
+      ssm_bucket_name: ${{ steps.get_ssm_bucket_name.outputs.ssm_bucket_name }}
+      rds_endpoint: ${{ steps.get_rds_endpoint.outputs.rds_endpoint }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        run: terraform workspace select -or-create prod
+
+      - name: Apply
+        run: terraform apply -auto-approve -input=false
+
+      - name: Get EC2 instance id
+        id: get_instance_id
+        run: |
+          EC2_INSTANCE_ID=$(terraform output -raw ec2_instance_id)
+          echo "ec2_instance_id=$EC2_INSTANCE_ID" >> "$GITHUB_OUTPUT"
+      
+      - name: Get ssm bucket name
+        id: get_ssm_bucket_name
+        run: |
+          SSM_BUCKET_NAME=$(terraform output -raw ssm_bucket_name)
+          echo "ssm_bucket_name=$SSM_BUCKET_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Get RDS Endpoint 
+        id: get_rds_endpoint
+        run: |
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "rds_endpoint=$RDS_ENDPOINT" >> "$GITHUB_OUTPUT"
+
+          
+  ansible:
+    name: Ansible Deploy
+    runs-on: ubuntu-latest
+    needs: terraform_apply
+
+    defaults:
+      run:
+        working-directory: ${{ env.ANSIBLE_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Ansible and dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y unzip python3-pip curl
+          python3 -m pip install --upgrade pip
+          python3 -m pip install ansible ansible-lint boto3 botocore
+          ansible-galaxy collection install amazon.aws
+
+      - name: Install Session Manager plugin
+        run: |
+          curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o session-manager-plugin.deb
+          sudo dpkg -i session-manager-plugin.deb
+          session-manager-plugin --version
+
+      - name: Create inventory.ini
+        run: |
+          cat > inventory.ini <<EOF
+          [app]
+          ${{ needs.terraform_apply.outputs.ec2_instance_id }}
+
+          [app:vars]
+          ansible_connection=amazon.aws.aws_ssm
+          ansible_aws_ssm_region=${{ env.AWS_REGION }}
+          ansible_aws_ssm_bucket_name=${{ needs.terraform_apply.outputs.ssm_bucket_name }}
+          EOF
+
+      - name: Show inventory
+        run: cat inventory.ini
+
+      - name: Check Ansible connectivity
+        run: ansible app -i inventory.ini -m ping
+
+      - name: Syntax check playbook
+        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
+
+      - name: Lint playbook
+        run: ansible-lint playbook.yml
+
+      - name: Run Ansible playbook
+        env:
+          RDS_ENDPOINT: ${{ needs.terraform_apply.outputs.rds_endpoint }}
+          DB_USER_NAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: ansible-playbook -i inventory.ini playbook.yml
+        
+

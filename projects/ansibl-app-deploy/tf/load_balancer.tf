@@ -25,7 +25,7 @@ resource "aws_lb_target_group" "alb_tg" {
   health_check {
     path                = "/"
     protocol            = "HTTP"
-    matcher             = "200-399"
+    matcher             = "200"
     interval            = 30
     healthy_threshold   = 3
     unhealthy_threshold = 3
