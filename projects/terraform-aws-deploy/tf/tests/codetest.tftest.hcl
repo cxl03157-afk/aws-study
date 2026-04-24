@@ -39,9 +39,9 @@ run "aws_code_test" {
     error_message = "RDS SG ports mismatch"
   }
 
-  # EC2のInstance typeの確認
+  # EC2のInstanceの数とtypeの確認
   assert {
-    condition     = output.ec2_type == "t3.micro"
+    condition = length(output.ec2_type) == 2 && toset(output.ec2_type) == toset(["t3.micro"])
     error_message = "EC2 instance type mismatch"
   }
 
@@ -52,5 +52,3 @@ run "aws_code_test" {
   }
 
 }
-
-

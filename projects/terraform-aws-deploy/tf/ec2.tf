@@ -6,26 +6,15 @@ data "aws_ssm_parameter" "al2023" {
 }
 
 resource "aws_instance" "ec2" {
+  count = 2
+
   ami                    = data.aws_ssm_parameter.al2023.value
   instance_type          = "t3.micro"
-  subnet_id              = values(aws_subnet.public_sub)[0].id
+  subnet_id              = values(aws_subnet.public_sub)[count.index].id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   key_name               = var.ec2_key_name
 
   tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-ec2"
+    Name = "${local.name_prefix}-ec2-${count.index + 1}"
   })
 }
-
-#resource "aws_instance" "ec2_2" {
-#  ami                    = data.aws_ssm_parameter.al2023.value
-#  instance_type          = "t3.micro"
-#  subnet_id              = values(aws_subnet.public_sub)[1].id
-#  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-#  key_name               = var.ec2_key_name
-
-#  tags = merge(local.common_tags, {
-#    Name = "${local.name_prefix}-ec2-2"
-#  })
-#}
-
