@@ -1,0 +1,137 @@
+name: terraform-aws-deploy
+
+on:
+  pull_request:
+    paths:
+      - 'projects/terraform-aws-deploy/tf/**/*.tf'
+      - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
+      - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
+
+  push:
+    branches:
+      - main
+
+    paths:
+      - 'projects/terraform-aws-deploy/tf/**/*.tf'
+      - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
+      - '.github/workflows/*.yaml'
+      - '.github/workflows/*.yml'
+    
+  workflow_dispatch:      
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_DIR: projects/terraform-aws-deploy/tf
+  AWS_REGION: ap-northeast-1
+  TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+  TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+jobs:
+  plan:
+    name: terraform plan
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        run: terraform workspace select -or-create dev
+
+      - name: Fmt Check
+        run: terraform fmt -check -recursive
+
+      - name: Validate
+        run: terraform validate
+
+      - name: test
+        run: terraform test -verbose
+
+      - name: Plan
+        run: terraform plan -no-color -input=false
+
+
+  apply_dev:
+    needs: plan
+    name: Terraform Apply dev
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        run: terraform workspace select -or-create dev
+
+      - name: Terraform Apply dev
+        run: terraform apply -auto-approve -input=false        
+
+  apply:
+    if: false
+    name: Terraform Apply prod
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init -input=false
+
+      - name: Select Workspace
+        run: terraform workspace select -or-create prod
+
+      - name: Apply
+        run: terraform apply -auto-approve -input=false
