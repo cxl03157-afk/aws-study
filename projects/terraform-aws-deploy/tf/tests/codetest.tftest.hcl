@@ -41,7 +41,7 @@ run "aws_code_test" {
 
   # EC2のInstanceの数とtypeの確認
   assert {
-    condition = length(output.ec2_type) == 2 && toset(output.ec2_type) == toset(["t3.micro"])
+    condition     = length(output.ec2_type) == 2 && toset(output.ec2_type) == toset(["t3.micro"])
     error_message = "EC2 instance type mismatch"
   }
 
