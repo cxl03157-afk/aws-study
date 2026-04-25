@@ -36,17 +36,13 @@ resource "aws_lb_target_group" "alb_tg" {
   })
 }
 
-resource "aws_lb_target_group_attachment" "alb_tga_1" {
+resource "aws_lb_target_group_attachment" "alb_tga" {
+  count = length(aws_instance.ec2)
+
   target_group_arn = aws_lb_target_group.alb_tg.arn
-  target_id        = aws_instance.ec2.id
+  target_id        = aws_instance.ec2[count.index].id
   port             = 8080
 }
-
-#resource "aws_lb_target_group_attachment" "alb_tga_2" {
-#  target_group_arn = aws_lb_target_group.alb_tg.arn
-#  target_id        = aws_instance.ec2_2.id
-#  port             = 8080
-#}
 
 
 # -----------------------------
