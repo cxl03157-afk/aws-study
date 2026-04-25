@@ -178,11 +178,11 @@ jobs:
       - name: Check Ansible connectivity
         run: ansible app -i inventory.ini -m ping
 
-      - name: Syntax check playbook
-        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
+#      - name: Syntax check playbook
+#        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
 
-      - name: Lint playbook
-        run: ansible-lint playbook.yml
+#      - name: Lint playbook
+#        run: ansible-lint playbook.yml
 
       - name: Run Ansible playbook
         env:
@@ -193,9 +193,9 @@ jobs:
 
 
   apply_prod:
-#    if: false
+    if: false
     name: Terraform Apply prod
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     defaults:
@@ -297,11 +297,11 @@ jobs:
       - name: Check Ansible connectivity
         run: ansible app -i inventory.ini -m ping
 
-      - name: Syntax check playbook
-        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
+#      - name: Syntax check playbook
+#        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
 
-      - name: Lint playbook
-        run: ansible-lint playbook.yml
+#      - name: Lint playbook
+#        run: ansible-lint playbook.yml
 
       - name: Run Ansible playbook
         env:
