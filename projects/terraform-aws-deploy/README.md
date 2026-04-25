@@ -136,13 +136,15 @@ CD（prod環境）
   - 初期構成（EC2×1）でplanが正常実行されることを確認
   - 構成変更（EC2×2）後もplanが正常に差分検出されることを確認
 
-プラン結果　EC2x1
+ プラン結果　EC2x1
+ 
 ![plan1結果1](docs/plan1_result-1.png)
 
 ![plan1結果2](docs/plan1_result-2.png)
 
 
-プラン結果　EC2x2
+ プラン結果　EC2x2
+ 
 ![plan2結果1](docs/plan2_result-1.png)
 
 ![plan2結果2](docs/plan2_diff.png)
@@ -152,21 +154,29 @@ CD（prod環境）
 
 ※EC2にアプリ入れる前なのでhelth checkは異常となっています
 
-手動apply結果　EC2x1
+ 手動apply結果　EC2x1
+ 
 ![dev1結果1](docs/dev1_result-1.png)
+
 ![dev1結果2](docs/dev1_result-2.png)
+
 ![dev1結果3](docs/dev1_ec2.png)
+
 ![dev1結果3](docs/dev1_tg.png)
 
-手動apply結果　EC2x2
+ 手動apply結果　EC2x2
+ 
 ![dev1結果1](docs/dev2_result-1.png)
+
 ![dev1結果3](docs/dev2_ec2.png)
+
 ![dev1結果3](docs/dev2_tg.png)
 
 
   - mainマージ後、prod環境に自動デプロイされることを確認
-  
+
 ![dev1結果1](docs/prod_result-1.png)
+
 ![dev1結果3](docs/prod_result-2.png)
 
 ---
