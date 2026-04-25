@@ -88,7 +88,7 @@
       git:
         repo: https://github.com/koujienami/aws-study.git
         dest: /home/ec2-user/aws-study
-        force: yes
+        force: ture
 
     - name: create source resources dir
       file:
@@ -125,25 +125,21 @@
 
     - name: initialize database
       shell: |
-        mysql -h {{ rds_endpoint }} -u {{ db_username }} <<EOF
+        mysql -h {{ rds_endpoint }} -u {{ db_username }} -e "
         CREATE DATABASE IF NOT EXISTS awsstudy;
         USE awsstudy;
-
         CREATE TABLE IF NOT EXISTS student (
           id INT PRIMARY KEY AUTO_INCREMENT,
           name VARCHAR(255) NOT NULL
         );
-
         INSERT INTO student (name)
         SELECT 'Kouji Enami'
         WHERE NOT EXISTS (
           SELECT 1 FROM student WHERE name = 'Kouji Enami'
         );
-
-        EOF 
+        "
       environment:
         MYSQL_PWD: "{{ db_password }}"
-
 
 # 権限設定
     - name: change mode
@@ -206,4 +202,4 @@
         port: 8080
         host: 127.0.0.1
         delay: 3
-        timeout: 60 
+        timeout: 60
