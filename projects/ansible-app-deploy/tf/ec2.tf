@@ -1,0 +1,22 @@
+# -----------------------------
+# EC2
+# -----------------------------
+data "aws_ssm_parameter" "al2023" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+
+resource "aws_instance" "ec2" {
+  count = 1
+
+  ami                         = data.aws_ssm_parameter.al2023.value
+  instance_type               = "t3.micro"
+  iam_instance_profile        = aws_iam_instance_profile.ec2_ssm_profile.name
+  subnet_id                   = values(aws_subnet.public_sub)[count.index].id
+  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
+  associate_public_ip_address = true
+  key_name                    = var.ec2_key_name
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name_prefix}-ec2-${count.index + 1}"
+  })
+}
