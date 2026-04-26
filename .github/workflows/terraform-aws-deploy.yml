@@ -5,8 +5,7 @@ on:
     paths:
       - 'projects/terraform-aws-deploy/tf/**/*.tf'
       - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
-      - '.github/workflows/*.yaml'
-      - '.github/workflows/*.yml'
+      - '.github/workflows/terraform-aws-deploy.yml'
 
   push:
     branches:
@@ -15,8 +14,7 @@ on:
     paths:
       - 'projects/terraform-aws-deploy/tf/**/*.tf'
       - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
-      - '.github/workflows/*.yaml'
-      - '.github/workflows/*.yml'
+      - '.github/workflows/terraform-aws-deploy.yml'
     
   workflow_dispatch:      
 
