@@ -2,8 +2,6 @@ name: App test
 
 on:
   pull_request:
-    branches:
-      - test3
     paths:
       - '.github/workflows/ansible-app-deploy.yml'
       - 'projects/ansible-app-deploy/ansible/**'
