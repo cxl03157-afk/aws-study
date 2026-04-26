@@ -2,6 +2,9 @@ name: terraform-aws-deploy
 
 on:
   pull_request:
+    branches:
+      - main
+
     paths:
       - 'projects/terraform-aws-deploy/tf/**/*.tf'
       - 'projects/terraform-aws-deploy/tf/tests/**/*.tftest.hcl'
@@ -103,9 +106,9 @@ jobs:
         run: terraform apply -auto-approve -input=false        
 
   apply:
-#    if: false
     name: Terraform Apply prod
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: prod
     runs-on: ubuntu-latest
 
     defaults:

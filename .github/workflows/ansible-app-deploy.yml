@@ -2,6 +2,8 @@ name: App test
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - '.github/workflows/ansible-app-deploy.yml'
       - 'projects/ansible-app-deploy/ansible/**'
@@ -32,7 +34,7 @@ env:
 jobs:
   plan:
     name: terraform plan
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     defaults:
@@ -69,7 +71,6 @@ jobs:
 
       - name: Plan
         run: terraform plan -no-color -input=false
-
 
   apply_dev:
     needs: plan
@@ -191,11 +192,10 @@ jobs:
 
 
   apply_prod:
-    if: false
     name: Terraform Apply prod
-#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
+    environment: prod
     defaults:
       run:
         working-directory: ${{ env.TF_DIR }}
@@ -223,6 +223,18 @@ jobs:
 
       - name: Select Workspace
         run: terraform workspace select -or-create prod
+
+      - name: Fmt Check
+        run: terraform fmt -check -recursive
+
+      - name: Validate
+        run: terraform validate
+
+      - name: test
+        run: terraform test -verbose
+
+      - name: Plan
+        run: terraform plan -no-color -input=false
 
       - name: Apply
         run: terraform apply -auto-approve -input=false
@@ -307,4 +319,3 @@ jobs:
           DB_USER_NAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: ansible-playbook -i inventory.ini playbook.yml
-        
