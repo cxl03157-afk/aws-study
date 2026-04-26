@@ -29,7 +29,7 @@ run "aws_code_test" {
 
   # EC2 port確認
   assert {
-    condition     = toset(output.ec2_ports) == toset([22, 8080])
+    condition     = toset(output.ec2_ports) == toset([8080])
     error_message = "EC2 SG ports mismatch"
   }
 
