@@ -135,42 +135,89 @@ CD（prod環境）
   ├ terraform apply（インフラ構築）
   └ ansible-playbook（アプリデプロイ）
 ```
-
 ---
 
 ## 動作確認
 
+* CI：Terraformの構文チェック・テスト・planが正常終了
+* CD（dev）：インフラ構築〜アプリデプロイまで成功
+* CD（prod）：承認フロー後に自動デプロイ成功
+* ALB経由でアプリ正常動作を確認
+* EC2再起動後もアプリが自動起動することを確認
+
 * CI確認
   - planが正常実行されることを確認
 
- 
-![plan結果](docs/plan1_result-1.png)
+  planが正常終了
+![plan結果](docs/plan-result-1.png)
+
+  planの内容
+![plan結果](docs/plan-result-2.png)
 
 
 * CD確認
   - dev環境で手動applyし、構成通りにリソースが作成されることを確認
 
  手動apply結果
- 
-![dev結果1](docs/dev1_result-1.png)
 
-![dev結果2](docs/dev1_result-2.png)
+  アプリデプロイまで正常終了
+![dev結果1](docs/dev-result-1.png)
 
-![dev1結果3](docs/dev1_ec2.png)
+  Terraformでの環境デプロイ内容
+![dev結果2](docs/dev-result-2.png)
+
+  Ansibleでのアプリデプロイ内容
+![dev結果3](docs/dev-result-3.png)
+
+  ALBからのアクセス結果
+![dev結果4](docs/dev-result-4.png)
+
+  EC2を停止して再起動後の動作確認
+![dev結果5](docs/dev-result-5.png)
+
+![dev結果6](docs/dev-result-6.png)
+
+![dev結果7](docs/dev-result-7.png)
+
+![dev結果8](docs/dev-result-8.png)
+
 
   - mainマージして承認後にprod環境に自動デプロイされることを確認
 
-![prod結果1](docs/prod_result-1.png)
+  承認待ち状態
+![prod結果1](docs/prod-result-1.png)
 
-![prod結果2](docs/prod_result-2.png)
+  承認後の動作状態
+![prod結果2](docs/prod-result-2.png)
+
+  ALBからのアクセス状態
+![prod結果3](docs/prod-result-3.png)
+
+  EC2状態
+![prod結果4](docs/prod-result-4.png)
+
+  SSM状態
+![prod結果5](docs/prod-result-5.png)
+
+  アプリ動作状態
+![prod結果6](docs/prod-result-6.png)
 
 ---
 
 ## 工夫した点・学んだこと
-* CI/CDの分離
-  * CI：検証（planまで）
-  * CD：環境、アプリデプロイ（apply）
-  
-* 事前デプロイ確認
-  * workflow_dispatchを利用し、mainマージ前に動作確認
 
+* CIとCDを分離し、品質担保とデプロイの責務を明確化
+* Terraform testを導入し、インフラの検証を自動化
+* workflow_dispatchを利用し、mainマージ前に安全な動作確認を実施
+* Ansibleを統合し、インフラ構築からアプリデプロイまで一貫して自動化
+* EC2再起動後のアプリ自動起動を確認し、運用面も考慮
+
+---
+## 成果
+
+* インフラ構築〜アプリデプロイまでの完全自動化を実現
+* 手動作業を排除し、再現性の高い環境構築を達成
+* PRベースの安全なデプロイフローを確立
+* 実務に近いCI/CD構成の理解を深めた
+
+---
