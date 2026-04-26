@@ -88,7 +88,7 @@
       git:
         repo: https://github.com/koujienami/aws-study.git
         dest: /home/ec2-user/aws-study
-        force: ture
+        force: true
 
     - name: create source resources dir
       file:
