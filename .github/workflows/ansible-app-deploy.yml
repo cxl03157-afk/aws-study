@@ -34,7 +34,7 @@ env:
 jobs:
   plan:
     name: terraform plan
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     defaults:
@@ -177,12 +177,6 @@ jobs:
       - name: Check Ansible connectivity
         run: ansible app -i inventory.ini -m ping
 
-#      - name: Syntax check playbook
-#        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
-
-#      - name: Lint playbook
-#        run: ansible-lint playbook.yml
-
       - name: Run Ansible playbook
         env:
           RDS_ENDPOINT: ${{ needs.apply_dev.outputs.rds_endpoint }}
@@ -306,12 +300,6 @@ jobs:
 
       - name: Check Ansible connectivity
         run: ansible app -i inventory.ini -m ping
-
-#      - name: Syntax check playbook
-#        run: ansible-playbook --syntax-check -i inventory.ini playbook.yml
-
-#      - name: Lint playbook
-#        run: ansible-lint playbook.yml
 
       - name: Run Ansible playbook
         env:
