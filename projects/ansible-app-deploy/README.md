@@ -157,10 +157,13 @@ CD（prod環境）
 * CI確認
   - planが正常実行されることを確認
 
-  planが正常終了
+  ■ planが正常終了
+
 ![plan結果](docs/plan-result-1.png)
 
-  planの内容
+
+  ■ planの内容
+
 ![plan結果](docs/plan-result-2.png)
 
 
@@ -169,19 +172,28 @@ CD（prod環境）
 
  手動apply結果
 
-  アプリデプロイまで正常終了
+  ■ アプリデプロイまで正常終了
+  
 ![dev結果1](docs/dev-result-1.png)
 
-  Terraformでの環境デプロイ内容
+
+  ■ Terraformでの環境デプロイ内容
+  
 ![dev結果2](docs/dev-result-2.png)
 
-  Ansibleでのアプリデプロイ内容
+
+  ■ Ansibleでのアプリデプロイ内容
+  
 ![dev結果3](docs/dev-result-3.png)
 
-  ALBからのアクセス結果
+
+  ■ ALBからのアクセス結果
+  
 ![dev結果4](docs/dev-result-4.png)
 
-  EC2を停止して再起動後の動作確認
+
+  ■ EC2を停止して再起動後の動作確認
+  
 ![dev結果5](docs/dev-result-5.png)
 
 ![dev結果6](docs/dev-result-6.png)
@@ -193,22 +205,33 @@ CD（prod環境）
 
   - mainマージして承認後にprod環境に自動デプロイされることを確認
 
-  承認待ち状態
+  ■ 承認待ち状態
+  
 ![prod結果1](docs/prod-result-1.png)
 
-  承認後の動作状態
+
+  ■ 承認後の動作状態
+  
 ![prod結果2](docs/prod-result-2.png)
 
-  ALBからのアクセス状態
+
+  ■ ALBからのアクセス状態
+  
 ![prod結果3](docs/prod-result-3.png)
 
-  EC2状態
+
+  ■ EC2状態
+  
 ![prod結果4](docs/prod-result-4.png)
 
-  SSM状態
+
+  ■ SSM状態
+  
 ![prod結果5](docs/prod-result-5.png)
 
-  アプリ動作状態
+
+  ■ アプリ動作状態
+  
 ![prod結果6](docs/prod-result-6.png)
 
 ---
