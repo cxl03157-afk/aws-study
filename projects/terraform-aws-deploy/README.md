@@ -38,7 +38,9 @@ CI/CDパイプラインを構築し、自動検証およびデプロイの仕組
 ### ■ セキュリティ
 * Security Group設計
   * ALB HTTP(80), HTTPS(443)
-  * EC2 HTTP(22,8080)     #動作確認のため特定PCのみにSSH設定
+  * EC2
+    * SSH(22) ※動作確認のため特定IPのみ許可
+    * HTTP(8080)
   * RDS MySQL(3306)
 * WAF（AWS Managed Rules）
   * AWSManagedRulesCommonRuleSetを適用
@@ -52,6 +54,13 @@ CI/CDパイプラインを構築し、自動検証およびデプロイの仕組
   - CloudWatch Logsへ出力し、リクエスト内容を確認可能
 
 ---
+
+  ## 構成図
+
+![構成図](docs/architecture-1.drawio.svg)
+
+---
+
 
 ## 使用技術
 * GitHub Actions
@@ -154,7 +163,7 @@ CD（prod環境）
 * CD確認
   - dev環境で手動applyし、構成通りにリソースが作成されることを確認
 
-※EC2にアプリ入れる前なのでhelth checkは異常となっています
+※EC2にアプリ入れる前なのでhealth checkは異常となっています
 
  手動apply結果　EC2x1
  
@@ -184,12 +193,15 @@ CD（prod環境）
 ---
 
 ## 工夫した点・学んだこと
+* OIDCによる認証の採用
+  * AWSアクセスキーを使用せず、GitHub ActionsからIAM RoleをAssumeする構成とした
+
+* Terraform Backendの構成
+  * S3によるtfstate管理とDynamoDBによるロック制御により、複数の同時変更を防止
+
 * CI/CDの分離
-  * CI：検証（planまで）
-  * CD：デプロイ（apply）
+  * CIでは検証のみ（fmt / validate / test / plan）
+  * CDでデプロイ（apply）も実行するようにした
 
-* 事前デプロイ確認
-  * workflow_dispatchを利用し、mainマージ前に動作確認
-
-* スケーラブルな構成への変更
-  * EC2を1台→2台へ変更し、ALB配下での負荷分散を実施
+* スケーラブル構成への対応
+  * EC2台数を変更し、スケーラブル対応を実施
